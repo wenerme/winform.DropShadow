@@ -28,9 +28,9 @@ f.RefreshShadow();
 
 Then I rewrite the class,now it looks like this, a real DropShadow.
 
-![](https://raw.github.com/wenerme/winform.Dropdown/master/screenshot.png 'DropShadow screenshot')
+![](https://raw.github.com/wenerme/winform.DropShadow/master/screenshot.png 'DropShadow screenshot')
 
-Source is **[here](https://github.com/wenerme/winform.Dropdown)**.
+Source is **[here](https://github.com/wenerme/winform.DropShadow)**.
 
 One thing you should know is this class not consider the `border-radius`(takes form css).
 
@@ -52,4 +52,4 @@ These propertyies
 
 require you manual call `RefreshShadow()`.
 
-Go to the [demo project](https://github.com/wenerme/winform.Dropdown)
+Go to the [demo project](https://github.com/wenerme/winform.DropShadow)
