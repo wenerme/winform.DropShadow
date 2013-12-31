@@ -2,21 +2,27 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace ShadowDemo
 {
+	/// <summary>
+	///     Dropshadow.
+	///     Add a shadow to a winform
+	/// </summary>
 	public class Dropshadow : Form
 	{
 		private Bitmap _shadowBitmap;
-		private float _shadowOpacity = 1;
+		private Color _shadowColor;
+		private int _shadowH;
+		private byte _shadowOpacity = 255;
+		private int _shadowV;
 
 		public Dropshadow(Form f)
 		{
+
 			Owner = f;
-			ShadowRadius = 10;
 			ShadowColor = Color.Black;
 
 			// default style
@@ -35,19 +41,16 @@ namespace ShadowDemo
 			Owner.Activated += (sender, args) => Owner.BringToFront();
 		}
 
-		/// <summary>
-		///     DO NOT NEED REFRESH
-		/// </summary>
-		public Point ShadowOffset { get; set; }
+		public Color ShadowColor
+		{
+			get { return _shadowColor; }
+			set
+			{
+				_shadowColor = value;
+				_shadowOpacity = _shadowColor.A;
+			}
+		}
 
-		/// <summary>
-		///     REQUIRE REFRESH
-		/// </summary>
-		public Color ShadowColor { get; set; }
-
-		/// <summary>
-		///     DO NOT NEED REFRESH
-		/// </summary>
 		public Bitmap ShadowBitmap
 		{
 			get { return _shadowBitmap; }
@@ -58,20 +61,7 @@ namespace ShadowDemo
 			}
 		}
 
-		/// <summary>
-		///     REQUIRE REFRESH
-		/// </summary>
-		public int ShadowRadius { get; set; }
-
-		/// <summary>
-		///     REQUIRE REFRESH
-		/// </summary>
-		public int BorderRadius { get; set; }
-
-		/// <summary>
-		///     DO NOT NEED REFRESH
-		/// </summary>
-		public float ShadowOpacity
+		public byte ShadowOpacity
 		{
 			get { return _shadowOpacity; }
 			set
@@ -81,8 +71,52 @@ namespace ShadowDemo
 			}
 		}
 
-		public int ShadowH { get; set; }
-		public int ShadowV { get; set; }
+		public int ShadowH
+		{
+			get { return _shadowH; }
+			set
+			{
+				_shadowH = value;
+				RefreshShadow(false);
+			}
+		}
+
+		/// <summary>
+		///     Offset X relate to Owner
+		/// </summary>
+		public int OffsetX
+		{
+			get { return ShadowH - (ShadowBlur + ShadowSpread); }
+		}
+
+		/// <summary>
+		///     Offset Y relate to Owner
+		/// </summary>
+		public int OffsetY
+		{
+			get { return ShadowV -(ShadowBlur + ShadowSpread); }
+		}
+
+		public new int Width
+		{
+			get { return Owner.Width + (ShadowSpread + ShadowBlur)*2; }
+		}
+
+		public new int Height
+		{
+			get { return Owner.Height + (ShadowSpread + ShadowBlur)*2; }
+		}
+
+		public int ShadowV
+		{
+			get { return _shadowV; }
+			set
+			{
+				_shadowV = value;
+				RefreshShadow(false);
+			}
+		}
+
 		public int ShadowBlur { get; set; }
 		public int ShadowSpread { get; set; }
 
@@ -98,68 +132,78 @@ namespace ShadowDemo
 
 		public static Bitmap DrawShadowBitmap(int width, int height, int borderRadius, int blur, int spread, Color color)
 		{
-			int ex = blur+spread;
+			int ex = blur + spread;
 			int w = width + ex*2;
 			int h = height + ex*2;
-			var solid_w = width + spread*2;
-			var solid_h = height + spread*2;
+			int solidW = width + spread*2;
+			int solidH = height + spread*2;
 
 			var bitmap = new Bitmap(w, h);
 			Graphics g = Graphics.FromImage(bitmap);
 			// fill background
 			g.FillRectangle(new SolidBrush(color)
-				, blur, blur, width + spread*2+1, height + spread*2+1);
+				, blur, blur, width + spread*2 + 1, height + spread*2 + 1);
 			// +1 to fill the gap
-			
-			// four dir gradiant
+
 			if (blur > 0)
 			{
-				// up
-				var brush = new LinearGradientBrush(new Point(0, 0), new Point(0, blur), Color.Transparent, color);
-				g.FillRectangle(brush, blur, 0, solid_w, blur);
-				// down
-				brush = new LinearGradientBrush(new Point(0, blur), new Point(0, 0), Color.Transparent, color);
-				g.FillRectangle(brush, blur, h - blur, solid_w, blur);
+				// four dir gradiant
+				{
+					// left
+					var brush = new LinearGradientBrush(new Point(0, 0), new Point(blur, 0), Color.Transparent, color);
+					// will thorw ArgumentException
+					// brush.WrapMode = WrapMode.Clamp; 
 
-				// left
-				brush = new LinearGradientBrush(new Point(0, 0), new Point(blur, 0), Color.Transparent, color);
-				g.FillRectangle(brush, 0, blur, blur, solid_h);
-				// right
-				brush = new LinearGradientBrush(new Point(blur, 0), new Point(0, 0), Color.Transparent, color);
-				g.FillRectangle(brush, w - blur, blur, blur, solid_h);
-			}
 
-			// four corner
-			{
-				var gp = new GraphicsPath();
-				//gp.AddPie(0,0,blur*2,blur*2, 180, 90);
-				gp.AddEllipse(0,0,blur*2, blur*2);
-				
+					g.FillRectangle(brush, 0, blur, blur, solidH);
+					// up
+					brush.RotateTransform(90);
+					g.FillRectangle(brush, blur, 0, solidW, blur);
 
-				var pgb = new PathGradientBrush(gp);
-				pgb.CenterColor = color;
-				pgb.SurroundColors = new[] {Color.Transparent};
-				pgb.CenterPoint = new Point(blur, blur);
+					// right
+					// make sure parttern is currect
+					brush.ResetTransform();
+					brush.TranslateTransform(w%blur, h%blur);
 
-				// lt
-				g.FillPie(pgb, 0, 0, blur * 2, blur * 2,180,90);
-				// rt
-				var matrix = new Matrix();
-				matrix.Translate(w-blur*2, 0);
-				
-				pgb.Transform = matrix;
-				//pgb.Transform.Translate(w-blur*2, 0);
-				g.FillPie(pgb, w - blur * 2, 0, blur * 2, blur * 2, 270, 90);
-				// rb
-				matrix.Translate(0, h-blur*2);
-				pgb.Transform = matrix;
-				g.FillPie(pgb, w - blur * 2, h - blur * 2, blur * 2, blur * 2, 0, 90);
-				// lb
-				matrix.Reset();
-				matrix.Translate(0, h - blur * 2);
-				
-				pgb.Transform = matrix;
-				g.FillPie(pgb, 0, h - blur * 2, blur * 2, blur * 2, 90, 90);
+					brush.RotateTransform(180);
+					g.FillRectangle(brush, w - blur, blur, blur, solidH);
+					// down
+					brush.RotateTransform(90);
+					g.FillRectangle(brush, blur, h - blur, solidW, blur);
+				}
+
+
+				// four corner
+				{
+					var gp = new GraphicsPath();
+					//gp.AddPie(0,0,blur*2,blur*2, 180, 90);
+					gp.AddEllipse(0, 0, blur*2, blur*2);
+
+
+					var pgb = new PathGradientBrush(gp);
+					pgb.CenterColor = color;
+					pgb.SurroundColors = new[] {Color.Transparent};
+					pgb.CenterPoint = new Point(blur, blur);
+
+					// lt
+					g.FillPie(pgb, 0, 0, blur*2, blur*2, 180, 90);
+					// rt
+					var matrix = new Matrix();
+					matrix.Translate(w - blur*2, 0);
+
+					pgb.Transform = matrix;
+					//pgb.Transform.Translate(w-blur*2, 0);
+					g.FillPie(pgb, w - blur*2, 0, blur*2, blur*2, 270, 90);
+					// rb
+					matrix.Translate(0, h - blur*2);
+					pgb.Transform = matrix;
+					g.FillPie(pgb, w - blur*2, h - blur*2, blur*2, blur*2, 0, 90);
+					// lb
+					matrix.Reset();
+					matrix.Translate(0, h - blur*2);
+					pgb.Transform = matrix;
+					g.FillPie(pgb, 0, h - blur*2, blur*2, blur*2, 90, 90);
+				}
 			}
 
 			//
@@ -169,14 +213,8 @@ namespace ShadowDemo
 		public void UpdateLocation(Object sender = null, EventArgs eventArgs = null)
 		{
 			Point pos = Owner.Location;
-			//pos.Offset(ShadowOffset);
 
-			var ox = ShadowV + ShadowBlur + ShadowSpread;
-			ox = -ox;
-			var oy = ShadowH + ShadowBlur + ShadowSpread;
-			oy = -oy;
-
-			pos.Offset(ox, oy);
+			pos.Offset(OffsetX, OffsetY);
 			Location = pos;
 		}
 
@@ -192,32 +230,27 @@ namespace ShadowDemo
 				ShadowBitmap = DrawShadowBitmap(Owner.Width, Owner.Height, 0, ShadowBlur, ShadowSpread, ShadowColor);
 			}
 
-			SetBitmap(ShadowBitmap, ShadowOpacity);
+			//SetBitmap(ShadowBitmap, ShadowOpacity);
 			UpdateLocation();
 
 			// 设置显示区域
-			Region r = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width, Height, BorderRadius, BorderRadius));
-			Region or = Owner.Region;
+			//Region r = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width, Height, BorderRadius, BorderRadius));
+			var r = new Region(new Rectangle(0, 0, Width, Height));
+			Region or;
 			if (Owner.Region == null)
 				or = new Region(Owner.ClientRectangle);
-			or.Translate(ShadowV + ShadowBlur + ShadowSpread, ShadowV + ShadowBlur + ShadowSpread);
+			else
+				or = Owner.Region.Clone();
+
+			or.Translate(-OffsetX, -OffsetY);
 			r.Exclude(or);
 			Region = r;
-		}
 
-		/// <para>Changes the current bitmap.</para>
-		public void SetBitmap(Bitmap bitmap)
-		{
-			SetBitmap(bitmap, 255);
-		}
-
-		public void SetBitmap(Bitmap bitmap, float opacity)
-		{
-			SetBitmap(bitmap, (byte) (opacity*255));
+			Owner.Refresh();
 		}
 
 		/// <para>Changes the current bitmap with a custom opacity level.  Here is where all happens!</para>
-		public void SetBitmap(Bitmap bitmap, byte opacity)
+		public void SetBitmap(Bitmap bitmap, byte opacity = 255)
 		{
 			if (bitmap.PixelFormat != PixelFormat.Format32bppArgb)
 				throw new ApplicationException("The bitmap must be 32ppp with alpha-channel.");
@@ -260,50 +293,11 @@ namespace ShadowDemo
 				Win32.DeleteDC(memDc);
 			}
 		}
-
-
-		private Bitmap DrawShadow()
-		{
-			// 窗体的大小
-			int fw = Owner.Width + ShadowRadius*2;
-			int fh = Owner.Height + ShadowRadius*2;
-
-			var gp = new GraphicsPath();
-
-			gp.AddRectangle(new RectangleF(0, 0, fw, fh));
-			//gp.AddEllipse(ClientRectangle);
-			//gp.AddRectangle(new RectangleF(ShadowRadius + WithBorderRadius
-			//	, ShadowRadius + WithBorderRadius, ow, oh));
-
-			var pgb = new PathGradientBrush(gp);
-
-			pgb.CenterPoint = new PointF(fw/2f, fh/2f);
-			pgb.CenterColor = ShadowColor;
-			pgb.SurroundColors = new[] {Color.Transparent};
-			//pgb.ScaleTransform(1,1);
-
-			var bitmap = new Bitmap(fw, fh);
-
-			Graphics g = Graphics.FromImage(bitmap);
-
-			//var ctr = new Bitmap(Width, Height, CreateGraphics());
-			//g.DrawImage(ctr, new Point(0,0));
-			//var g = CreateGraphics();
-			g.FillPath(pgb, gp);
-
-			pgb.Dispose();
-			gp.Dispose();
-			//
-			Width = fw;
-			Height = fh;
-
-			return bitmap;
-		}
 	}
 
 
 	// class that exposes needed win32 gdi functions.
-	internal class Win32
+	internal static class Win32
 	{
 		public enum Bool
 		{
