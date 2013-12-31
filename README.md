@@ -1,3 +1,8 @@
+<!-- title: winform.Dropdown -->
+<!-- tag: CSharp, DEMO -->
+<!-- date: 2014/1/1 -->
+<!-- state: published -->
+
 winform.Dropdown
 ================
 
