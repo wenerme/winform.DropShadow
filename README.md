@@ -1,12 +1,13 @@
-<!-- title: winform.Dropdown -->
+<!-- title: winform.DropShadow -->
 <!-- tag: CSharp, DEMO -->
 <!-- date: 2014/1/1 -->
 <!-- state: published -->
+<!-- link: winform_DropShadow -->
 
-winform.Dropdown
+winform.DropShadow
 ================
 
-A winform dropdown demo
+A winform DropShadow demo
 
 First, the idea is come from [here](http://stackoverflow.com/questions/8793445).
 
