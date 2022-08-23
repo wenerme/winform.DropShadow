@@ -13,9 +13,9 @@ First, the idea is come from [here](http://stackoverflow.com/questions/8793445).
 
 <!-- more -->
 
-I go farther, write a workable class [here](https://github.com/wenerme/blog/blob/master/%E9%82%A3%E4%BA%9B%E5%B0%8F%E4%B8%9C%E8%A5%BF/%E8%80%83%E5%8B%A4%E7%B3%BB%E7%BB%9F/WindowsFormsApplication1/Dropshadow.cs).
+I go farther, write a workable class [here](https://github.com/wenerme/blog/blob/master/story/%E9%82%A3%E4%BA%9B%E5%B0%8F%E4%B8%9C%E8%A5%BF/%E8%80%83%E5%8B%A4%E7%B3%BB%E7%BB%9F/WindowsFormsApplication1/Dropshadow.cs).
 
-![Old DropShadow](https://raw.github.com/wenerme/blog/master/%E9%82%A3%E4%BA%9B%E5%B0%8F%E4%B8%9C%E8%A5%BF/%E8%80%83%E5%8B%A4%E7%B3%BB%E7%BB%9F/screenshot.png "Old DropShadow")
+![Old DropShadow](https://raw.github.com/wenerme/blog/master/story/%E9%82%A3%E4%BA%9B%E5%B0%8F%E4%B8%9C%E8%A5%BF/%E8%80%83%E5%8B%A4%E7%B3%BB%E7%BB%9F/screenshot.png "Old DropShadow")
 
 Usage:
 
